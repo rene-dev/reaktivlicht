@@ -41,12 +41,10 @@ if (++timer_overflow_count > 4){
 if (is_light()){       //check for light
    daylight++;
       if(daylight > 2){
-     // wdt_enable(WDTO_4S);
-     // //set_sleep_mode(SLEEP_MODE_PWR_DOWN);
-     // sei();
-     MCUCR = 1<<SE^1<<SM1;
+     wdt_enable(WDTO_4S);
+     MCUCR = ~(1<<SM0);
+     MCUCR = (1<<SE)|(1<<SM1);
      asm volatile("sleep");
-
    }
    int i;
    for(i = 0;i<4;i++){ //blink!
@@ -63,42 +61,23 @@ sei();
 }
 
 int main(void) {
-//_delay_ms(100);
-//wdt_disable();
-ACSR = (1<<ACD);      //disable comperator
-ADCSRA &= ~(1<<ADEN); //disable ADC
-TCCR0B |= (1<<CS02) | (1<<CS00);
-TIMSK0 |=1<<TOIE0;
+   WDTCR = (1<<WDCE);
+   WDTCR = ~(1<<WDE);
+   _delay_ms(50);
+   ACSR = (1<<ACD);      //disable comperator
+   ADCSRA &= ~(1<<ADEN); //disable ADC
+   TCCR0B |= (1<<CS02) | (1<<CS00);
+   TIMSK0 |=1<<TOIE0;
+   LED_DDR |= (1<<LED_GND_PIN) | (1<<LED_PLUS_PIN) | (1<<PB1); //set led as output
+   sei();
+   //set_sleep_mode(SLEEP_MODE_IDLE);
+   //sleep_mode();
+   MCUCR = ~(1<<SM0);
+   MCUCR = ~(1<<SM1);
+   MCUCR = (1<<SE);
+   asm volatile("sleep");
 
-wdt_enable(WDTO_8S);  //enable watchdog, to wake us up every second
-LED_DDR |= (1<<LED_GND_PIN) | (1<<LED_PLUS_PIN) | (1<<PB1); //set led as output
-//uint8_t i,daylight=0;
-sei();
-//set_sleep_mode(SLEEP_MODE_PWR_DOWN);
-//sleep_mode();
-
-while(1){
-/*
-if (is_light()){       //check for light
-   daylight++;
-   if(daylight == 3){
-      wdt_enable(WDTO_8S);
-   }
-   int i;
-   for(i = 0;i<4;i++){ //blink!
-      wdt_reset();
-      led_on();
-      _delay_ms(30);
-      led_off();
-      _delay_ms(100);
-   }
-   set_sleep_mode(SLEEP_MODE_PWR_DOWN); //go to sleep
-   sleep_mode();
-}
-*/
-}
-
-return 0;
-
+   while(1){}
+   return 0;
 }
 
